@@ -1,0 +1,91 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+<div style="margin-bottom: 10px">
+    <a class="btn btn-success" href="/admin/add/">
+        <span class="glyphicon glyphicon-plus-sign" aria-hidden="true"></span> 新建用户</a>
+</div>
+
+<table class="table table-bordered">
+    <thead>
+    <tr>
+        <th>ID</th>
+        <th>用户名</th>
+        <th>性别</th>
+        <th>年龄</th>
+        <th>部门</th>
+        <th>操作</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for row in queryset %}
+    <tr>
+        <td>{{row.id}}</td>
+        <td>{{row.username}}</td>
+        <td>{{row.get_gender_display}}</td>
+        <td>{{row.age}}</td>
+        <td>{{row.depart.title}}</td>
+        <td>
+            <a href="/admin/edit/{{row.id}}" class="btn btn-primary btn-xs">编辑</a>
+            <input type="button" value="删除" class="btn btn-danger btn-xs" onclick="deleteAction({{ row.id }});">
+        </td>
+    </tr>
+    {% endfor %}
+    </tbody>
+</table>
+
+<!-- Modal -->
+<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+    <div class="modal-dialog" role="document">
+        <div class="alert alert-danger alert-dismissible fade in" role="alert">
+            <button type="button" class="close"></button>
+            <h4>是否确认要删除？</h4>
+            <p style="margin: 20px 0;">删除后，所有的相关数据都会被清除，是否继续？</p>
+            <p>
+                <button type="button" class="btn btn-danger" onclick="confirmDelete()">确认</button>
+                <button type="button" class="btn btn-default" onclick="cancelDelete()">取消</button>
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block js %}
+
+<script>
+    // 当前要删除的id 通过设置一个全局变量DELETE_ID获取到
+    DELETE_ID = 0;
+
+    function deleteAction(id) {
+        DELETE_ID = id;
+        $('#myModal').modal('show') // 显示提示框
+    }
+
+    function confirmDelete() {
+        // 向后端发送请求，并删除
+        // 页面刷新后即可
+        // 拼接后的url /xxx/xxx/?aid=2
+        $.ajax({
+            url: "/admin/delete/",
+            type: "GET",
+            data: {
+                aid:DELETE_ID
+            },
+            dataType:"JSON",
+            success: function (res) {
+                if(res.status){
+                    // 成功后，刷新页面
+                    location.reload()
+                }else {
+                    alert(res.error);
+                }
+            }
+        })
+    }
+
+    function cancelDelete() {
+        DELETE_ID = 0;
+        $('#myModal').modal('hide') // 隐藏提示框
+    }
+</script>
+{% endblock %}
